@@ -1,4 +1,4 @@
-name: Extract APK
+name: Extract All Files
 on: [push, workflow_dispatch]
 
 jobs:
@@ -8,22 +8,17 @@ jobs:
       - name: 获取仓库代码
         uses: actions/checkout@v4
 
-      - name: 解压文件并提取 APK
+      - name: 解压所有文件
         run: |
-          mkdir -p apk_output
-          # 解压 tar.gz 格式
-          if ls *.tar.gz 1> /dev/null 2>&1; then
-            tar -zxvf *.tar.gz
-          fi
-          # 解压 zip 格式 (以防万一)
-          if ls *.zip 1> /dev/null 2>&1; then
-            unzip -o *.zip
-          fi
-          # 寻找所有找到的 APK 文件并集中到一个文件夹
-          find . -name "*.apk" -exec cp {} ./apk_output/ \;
+          mkdir -p output_folder
+          # 暴力解压所有的 tar.gz 和 zip 到当前目录
+          if ls *.tar.gz 1> /dev/null 2>&1; then tar -zxvf *.tar.gz; fi
+          if ls *.zip 1> /dev/null 2>&1; then unzip -o *.zip; fi
+          # 把解压出来散落一地的所有文件（除了 .git 文件夹）全收进 output_folder
+          find . -maxdepth 2 -not -path "./.git*" -not -path "./output_folder*" -exec cp -r {} ./output_folder/ \;
 
-      - name: 上传 APK 供下载
+      - name: 上传所有解压出来的文件
         uses: actions/upload-artifact@v4
         with:
-          name: My-APK-Files
-          path: apk_output/
+          name: All-Extracted-Files
+          path: output_folder/
