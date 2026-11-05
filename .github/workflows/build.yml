@@ -10,14 +10,20 @@ jobs:
 
       - name: 解压文件并提取 APK
         run: |
-          mkdir -p final_apk
-          if ls *.zip 1> /dev/null 2>&1; then
-            unzip -o *.zip -d ./final_apk
+          mkdir -p apk_output
+          # 解压 tar.gz 格式
+          if ls *.tar.gz 1> /dev/null 2>&1; then
+            tar -zxvf *.tar.gz
           fi
-          find . -name "*.apk" -exec cp {} ./final_apk/ \;
+          # 解压 zip 格式 (以防万一)
+          if ls *.zip 1> /dev/null 2>&1; then
+            unzip -o *.zip
+          fi
+          # 寻找所有找到的 APK 文件并集中到一个文件夹
+          find . -name "*.apk" -exec cp {} ./apk_output/ \;
 
       - name: 上传 APK 供下载
         uses: actions/upload-artifact@v4
         with:
           name: My-APK-Files
-          path: final_apk/
+          path: apk_output/
